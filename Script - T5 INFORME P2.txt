@@ -1,0 +1,53 @@
+
+# CARGA LIBRERIA Y DATOS
+# --------------------------------------------------------------
+library(arulesViz);library(arules)
+url.data    <- "https://www.dropbox.com/s/tub6vmcfb319uo3/groceries_4.csv?dl=1"
+groceries    <- read.csv(url.data)
+
+# TRANSFORMA Data.Frame en TRANSACCIONAL
+# --------------------------------------------------------------
+# Transforma  data.frame en transaccional
+trx       <- groceries 
+trx       <- split(trx$Item,trx$Id_Factura) # convierte datos en lista
+trx       <- as(trx,"transactions") # convierte datos en transacciones
+
+# CREA REGLAS
+# --------------------------------------------------------------
+reglas <- apriori(trx, parameter=list(support=0.01, confidence = 0.01))
+
+# PRINT
+# --------------------------------------------------------------
+# cantidad de reglas creadas
+print(reglas)
+# imprime todas las reglas
+inspect(reglas)
+
+# imprime las 3 reglas con mayor confianza
+reglas <-sort(reglas, by="confidence", decreasing=TRUE) # ordena regla 
+inspect(head(reglas,3))
+
+# data.frame con frecuencia porcentual de cada producto
+FreqProd <- data.frame(Producto=names(itemFrequency(trx)), 
+                       Frecuencia=itemFrequency(trx), row.names=NULL)
+FreqProd <- FreqProd[order(FreqProd$Frecuencia, decreasing = T),]
+FreqProd
+
+#Print del data set de transacciones
+inspect(trx)
+
+# PLOT
+# --------------------------------------------------------------
+reglas <-sort(reglas, by="confidence", decreasing=TRUE) # ordena reglas 
+
+# grafica los 20 productos mas frecuente
+itemFrequencyPlot(trx,topN=20,type="absolute")
+
+# Grafico de red 20 reglas con mayor confianza
+plot(head(reglas,20), method="graph", control=list(type="items"))
+
+# Grafico de matriz de 100 regla con mayor confianza
+plot(head(reglas,100), method="grouped")
+
+# grafico de dispersion de todas las reglas
+plot(reglas) 
